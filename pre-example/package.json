@@ -17,12 +17,14 @@
     "babelify": "7.2.0",
     "browserify": "13.0.0",
     "http-server": "^0.9.0",
-    "mkdirp": "0.5.x"
+    "mkdirp": "0.5.x",
+    "watchify": "^3.7.0"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "prebrowserify": "mkdirp dist",
     "browserify": "browserify src/main.js -t babelify --outfile dist/main.js",
-    "start": "npm install && npm run browserify && http-server"
+    "watchify": "watchify src/main.js -t babelify --outfile dist/main.js -dv",
+    "start": "npm install && npm run watchify & http-server"
   }
 }
