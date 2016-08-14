@@ -15,5 +15,12 @@ With this I was able to create a very basic package.json with the minimal depend
 
 - look at the pre-example folder to check the basic project.
 
+# Working on the final project
+
+- For the initial configuration is necesary to have the .babelrc file with the es2005 property.
+- Is also important to make sure the prebrowserify is executed when the watchify is running.
+
+- The first part is to add some easy design elements, I will use foundation as starting point.
+
 
 

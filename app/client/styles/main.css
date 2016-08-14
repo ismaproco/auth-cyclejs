@@ -1,0 +1,34 @@
+/* imports */
+
+@import 'https://fonts.googleapis.com/css?family=Lemonada|Roboto|Tillana';
+
+/* global styles*/
+body {
+    font-family: 'Roboto', sans-serif;
+}
+
+/* menu style*/
+
+.home-menu {
+    background: #009688;
+    color: white;
+    text-align: center;
+    font-family: 'Lemonada', cursive;
+    font-size: 1.2em;
+    height: 60px;
+}
+
+.home-menu .pure-menu-heading {
+    color: white;
+}
+
+/* main-container styles */
+
+#main-container {
+    padding-top: 65px;
+}
+
+.quote-container {
+    font-family: 'Tillana', cursive;
+    padding: 25px;
+}

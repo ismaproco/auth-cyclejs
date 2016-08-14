@@ -24,7 +24,7 @@ function main(sources) {
     .map(res => res.text) // this is the response text body
     .startWith('Loading...')
     .map(text =>
-      div('.container', [
+      div('.quote-container', [
         h1(text)
       ])
     );
