@@ -28,7 +28,41 @@ body {
     padding-top: 65px;
 }
 
+/* quote container styles */
 .quote-container {
     font-family: 'Tillana', cursive;
+    font-size: 0.9em;
     padding: 25px;
+    max-width: 600px;
+    margin: auto;
 }
+
+.quote-container .btn-get-quote {
+    margin: auto;
+    display: block;
+    text-transform: capitalize;
+    font-family: 'Roboto', sans-serif;
+}
+
+.protected {
+    display: block;
+    text-align: right;
+    color: red;
+}
+
+/* form container styles */
+
+.login-container {
+    font-size: 0.9em;
+    padding: 25px;
+    max-width: 600px;
+    margin: auto;
+}
+
+.login-container input,
+.login-container button {
+    margin-right: 10px;
+} 
+
+
+
