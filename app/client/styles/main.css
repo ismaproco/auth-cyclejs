@@ -37,17 +37,12 @@ body {
     margin: auto;
 }
 
-.quote-container .btn-get-quote {
+.quote-container .btn-get-quote,
+.quote-container .btn-get-quote-protected  {
     margin: auto;
     display: block;
     text-transform: capitalize;
     font-family: 'Roboto', sans-serif;
-}
-
-.protected {
-    display: block;
-    text-align: right;
-    color: red;
 }
 
 /* form container styles */
@@ -62,7 +57,22 @@ body {
 .login-container input,
 .login-container button {
     margin-right: 10px;
+    text-transform: capitalize;
 } 
 
+span.user-name {
+    text-decoration: underline;
+    color: darkblue;
+}
 
+.btn-log-out {
+    margin: 10px 0 0 50px;
+}
+
+span.error {
+    display: block;
+    padding: 20px;
+    text-align: center;
+    color: #a00;
+}
 

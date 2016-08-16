@@ -5,9 +5,9 @@
   "main": "main.js",
   "author": "Ismael Jimenez",
   "dependencies": {
-    "@cycle/xstream-run": "1.0.1",
     "@cycle/dom": "10.0.0-rc11",
     "@cycle/http": "9.0.0-rc3",
+    "@cycle/xstream-run": "1.0.1",
     "xstream": "2.1.x"
   },
   "devDependencies": {
