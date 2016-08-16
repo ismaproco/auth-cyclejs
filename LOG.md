@@ -33,5 +33,22 @@ With this I was able to create a very basic package.json with the minimal depend
 - The only thing remaining from the application is to handle the login (create session), the create user and protected quotes are already working.
 
 
+- When I was testing the application I found that if the HTTP driver found an error it will stop sending the request, so it was necessary to add a the error observable stream, found in the github documentation.
+    
+    https://github.com/cyclejs/cyclejs/issues/233
+
+- Also was necessary to add the `eager` option to true so the HTTP requests can be merge together into one single stream of request.
+
+- for the comment of using the document.querySelector, I publish a question to stackOverflow an it seems that with few changes it works. 
+
+    http://stackoverflow.com/questions/38969558/use-input-field-values-as-part-of-the-data-of-the-http-request-in-cyclejs/38974789#38974789
+
+- Then I completed the login section and simplify the flow of the application merging only the necessary requests for the login and for the quote generator.
+
+
+
+
+
+
 
 

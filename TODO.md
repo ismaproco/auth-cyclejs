@@ -13,7 +13,9 @@
   - [x] Login 
   - [x] Logout
 - [x] Change the quote load using the user state
-
+- [x] Fix the usage of static streamed values for the request.
+- [x] Implement the changing of screen when the log it button is clicked.
+- [x] Automatically load a quote when the application starts.
 
 ## Blog tasks
 
