@@ -71,11 +71,11 @@ We will be using the most basic dependencies to develop applications for CycleJS
 
 The scripts sections specify the running scripts we will have in the application.
 
--- test: not implemented
--- prebrowserify: create the dist folder before executing the browserify command.
--- browserify: build the output js file ready for the browser with all the internal dependencies
--- watchify: execute the browserify command each time a js file changes.
--- start: the default starting scripts
++ test: not implemented
++ prebrowserify: create the dist folder before executing the browserify command.
++ browserify: build the output js file ready for the browser with all the internal dependencies
++ watchify: execute the browserify command each time a js file changes.
++ start: the default starting scripts
 
 Your development server will start on http://localhost:8080 you can check the console for more details.
 
