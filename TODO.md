@@ -19,8 +19,8 @@
 
 ## Blog tasks
 
-- [ ] Define the blog structure based on the *vue* example
-- [ ] (to define) Start explaining the pre-example app.
+- [x] Define the blog structure based on the *vue* example
+- [x] (to define) Start explaining the pre-example app.
 - [ ] Explain that the design was implemented used foundation
 - [ ] Explain the general idea of the application
 - [ ] Explain why is so hard to thing in a stream kind of way
