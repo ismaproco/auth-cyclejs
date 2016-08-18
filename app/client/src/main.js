@@ -187,7 +187,7 @@ function quoteIntent( sources ) {
 
   // defining the url observer
   // const request$ = xs.of( $state.userRequest );
-  const request$ = click$.merge(clickProtected$).merge(autoQuote$);
+  const request$ = xs.merge(click$, clickProtected$, autoQuote$);
 
   // response event which filter by the category
   const responseRandom$ = sources.HTTP
@@ -251,7 +251,7 @@ function loginIntent(sources){
     .select('login').map( (response$) =>
       response$.replaceError( (errorObject) => xs.of( errorObject ) ) ).flatten();
 
-  const mergeRequest$ = signUpClick$.merge( loginClick$ );
+  const mergeRequest$ = xs.merge( loginClick$ , signUpClick$ );
   const mergeResponse$ = xs.merge( createResponse$, loginResponse$ );
 
   let screenActions$ = xs.merge(logoutClick$);
@@ -290,8 +290,7 @@ function main(sources) {
   const vdom$ = view( userState );
 
   /* merge request streams */
-  const mergeRequest$ = quoteActions.request$
-                          .merge(loginActions.request$);
+  const mergeRequest$ = xs.merge(loginActions.request$, quoteActions.request$);
 
   return {
     DOM: vdom$,

@@ -5,10 +5,10 @@
   "main": "main.js",
   "author": "Ismael Jimenez",
   "dependencies": {
-    "@cycle/dom": "10.0.0-rc11",
-    "@cycle/http": "9.0.0-rc3",
-    "@cycle/xstream-run": "1.0.1",
-    "xstream": "2.1.x"
+    "@cycle/dom": "^12.1.0",
+    "@cycle/http": "^10.1.0",
+    "@cycle/xstream-run": "^3.0.4",
+    "xstream": "^5.3.6"
   },
   "devDependencies": {
     "babel-preset-es2015": "^6.3.13",
