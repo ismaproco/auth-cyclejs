@@ -5,7 +5,8 @@ import {div, label, input, button, h1, h2, span,
         hr, ul, li, a, form, fieldset, legend, 
         makeDOMDriver } from '@cycle/dom';
 import {makeHTTPDriver} from '@cycle/http';
-
+import Quotes from './Quotes';
+import Login from './Login';
 
 // URL and endpoint constants
 const API = {
@@ -41,63 +42,7 @@ let $state = {
 
 /* Views definition */
 
-function renderForm( state ) {
-  return div('.login-form',[
-    div('.pure-form',[
-      fieldset([
-        legend('Please log in to use the protected api.'),
-        input('.user-input', 
-          { attrs: { 
-              type:'text', placeholder: 'User', required:'true'
-            } 
-          }),
-        input('.user-password', 
-          { attrs: { 
-              type:'text', placeholder: 'Password', required:'true'
-            } 
-          })
-      ])
-    ])
-  ])
-}
-
-function renderLoggedIn( username ) {
-  return div('.logged-in-form',[
-    div('.welcome-user-name', [ 
-      span('.welcome', 'Welcome: '), 
-      span('.user-name',username) 
-      ]),
-    button('.btn-log-out .pure-button', 'log out' )
-  ])
-}
-
-function renderWelcome(  ) {
-  return div('.welcome', [
-    renderForm(),
-    button('.btn-signup .pure-button','sign up'),
-    button('.btn-log-in .pure-button', 'log in')
-  ]);
-}
-
-
-function renderQuote(text, logged) {
-
-  let quoteButton;
-
-  if(logged){
-    quoteButton = button('.btn-get-quote-protected .pure-button','get a protected quote')
-  } else {
-    quoteButton = button('.btn-get-quote .pure-button','get a quote')
-  }
-
-  return div('.quote-container', [
-          h1(text),
-          quoteButton
-        ]);
-}
-
-
-function view( userState ) {
+function view( userState, quotes, login ) {
   console.log(userState)
   let events$ = xs.merge(
     userState.quoteActions.response$, 
@@ -108,7 +53,6 @@ function view( userState ) {
     .map(( ev ) => { 
 
       console.log( ev.text, 'state',userState );
-      
       
       if(ev.request) {
         if( ev.request.category === 'create-user' || ev.request.category === 'login') {
@@ -149,117 +93,18 @@ function view( userState ) {
 
     } ) // this is the response text body
     .startWith({text:'Loading...', screen: 'welcome'})
-    .map( ({ text, screen, logged, username, error }) => {
+    .map( ( { text, screen, logged, username, error } ) => {
         return div('.page',[
-            renderQuote(text, logged),
+            quotes.renderQuote(text, logged),
             div('.login-container',[
-                renderLoginSection( screen, username),
+                login.renderLoginSection( screen, username),
                 span('.error', error ? 'Error: '+ error : '')
               ]),
-            
           ]);
       }
     );
 }
 
-
-function renderLoginSection( screen, username ) {
-  if(screen === 'welcome') {
-    return renderWelcome(  );
-  } else if( screen === 'logged-in' ) {
-    return renderLoggedIn( username );
-  }
-}
-
-/* begin intents */
-
-function quoteIntent( sources ) {
-  // construct the event for the click 
-  const click$ = sources.DOM
-    .select('.btn-get-quote').events('click')
-    .map(ev => ( API.requestRandom ) );
-
-  const clickProtected$ = sources.DOM
-    .select('.btn-get-quote-protected').events('click')
-    .map(ev => ( API.requestRandomProtected ) );
-
-  const autoQuote$ = xs.of( API.requestRandom );
-
-  // defining the url observer
-  // const request$ = xs.of( $state.userRequest );
-  const request$ = xs.merge(click$, clickProtected$, autoQuote$);
-
-  // response event which filter by the category
-  const responseRandom$ = sources.HTTP
-    .select('random-quote').flatten();
-
-  // response event which filter by the category
-  const responseRandomProtected$ = sources.HTTP
-    .select('random-quote-protected').flatten();
-
-  const response$ = xs.merge(responseRandom$, responseRandomProtected$);
-
-
-  return { request$: request$ , response$: response$ };
-}
-
-
-function loginIntent(sources){
-  
-  // login click
-  const loginClick$ = sources.DOM
-    .select('.btn-log-in').events('click')
-    .map( ev => ({ 
-      username: document.querySelector('.user-input').value,
-      password: document.querySelector('.user-password').value
-    }))
-    .filter(data => data.username && data.password)
-    .map(data => {
-      const request = API.requestLogin;
-      request.send = data;
-      return request;
-    });
-
-  const signUpClick$ = sources.DOM
-    .select('.btn-signup').events('click')
-    .map( ev => ({ 
-      username: document.querySelector('.user-input').value,
-      password: document.querySelector('.user-password').value
-    }))
-    .filter(data => data.username && data.password)
-    .map(data => {
-      const request = API.requestCreate;
-
-      request.send = data;
-
-      return request;
-    });
-
-
-  // login click
-  const logoutClick$ = sources.DOM
-    .select('.btn-log-out').events('click')
-    .map( ev => ({ screen:'welcome'}) );
-
-
-  // response event which filter by the category
-  const createResponse$ = sources.HTTP
-    .select('create-user').map( (response$) =>
-      response$.replaceError( (errorObject) => xs.of( errorObject ) ) ).flatten();
-
-  const loginResponse$ = sources.HTTP
-    .select('login').map( (response$) =>
-      response$.replaceError( (errorObject) => xs.of( errorObject ) ) ).flatten();
-
-  const mergeRequest$ = xs.merge( loginClick$ , signUpClick$ );
-  const mergeResponse$ = xs.merge( createResponse$, loginResponse$ );
-
-  let screenActions$ = xs.merge(logoutClick$);
-
-  return {  screenActions$,
-            request$: mergeRequest$, 
-            response$: mergeResponse$ }
-}
 
 /* begin model */
 
@@ -275,19 +120,21 @@ function model( loginActions, quoteActions ) {
 /* end model */
 
 function main(sources) {
+  
+  const quotes = Quotes(API);
+  const login = Login(API);
+  
   /* ACTIONS definitions */
-
-  const quoteActions = quoteIntent( sources );
-
-  const loginActions = loginIntent( sources );
+  const quoteActions = quotes.quoteIntent( sources );
+  const loginActions = login.loginIntent( sources );
 
   /* STATE definition */
-  const userState = model(loginActions, quoteActions );
+  const userState = model( loginActions, quoteActions );
 
   /* VDOM creation */
 
   // create the vdom
-  const vdom$ = view( userState );
+  const vdom$ = view( userState , quotes, login );
 
   /* merge request streams */
   const mergeRequest$ = xs.merge(loginActions.request$, quoteActions.request$);
