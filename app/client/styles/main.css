@@ -57,8 +57,11 @@ body {
 .login-container input,
 .login-container button {
     margin-right: 10px;
-    text-transform: capitalize;
 } 
+
+.login-container button {
+  text-transform: capitalize;
+}
 
 span.user-name {
     text-decoration: underline;
