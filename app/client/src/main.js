@@ -36,9 +36,8 @@ const API = {
   }
 };
 
-let $state = { 
-    userRequest: API.requestRandom, 
-};
+const quotes = Quotes(API);
+const login = Login(API);
 
 /* Views definition */
 
@@ -54,18 +53,15 @@ function view( userState, quotes, login ) {
 
       console.log( ev.text, 'state',userState );
       
+    
       if(ev.request) {
         if( ev.request.category === 'create-user' || ev.request.category === 'login') {
           const obj = JSON.parse( ev.text );
-          userState.id_token = obj.id_token;
           userState.username = ev.request.send.username;
           userState.screen = 'logged-in';
+          userState.loggedIn = true;
           userState.error = '';
-
-          $state.screen = 'logged-in';
-          $state.userRequest = API.requestRandomProtected;
-          $state.userRequest.headers["Authorization"] = 'Bearer ' + userState.id_token;
-
+          API.requestRandomProtected.headers["Authorization"] = 'Bearer ' + obj.id_token;
         } else if ( ev.request.category === 'random-quote' 
                     || ev.request.category === 'random-quote-protected' ) {
           userState.quote = ev.text;
@@ -77,27 +73,28 @@ function view( userState, quotes, login ) {
         if(userState.screen === 'welcome') {
           userState.id_token = '';
           userState.error = '';
-          $state.userRequest = API.requestRandom;
+          userState.loggedIn = false;
+          API.requestRandomProtected.headers["Authorization"] = '';
         }
       } else if (ev.name === 'Error') {
         userState.error = ev.response ? ev.response.text : 'Error';
       }
-
+    
       return {
         text:userState.quote ,
         screen: userState.screen || 'welcome', 
-        logged: !!userState.id_token,
+        loggedIn: userState.loggedIn,
         username: userState.username,
         error: userState.error
       }; 
 
     } ) // this is the response text body
     .startWith({text:'Loading...', screen: 'welcome'})
-    .map( ( { text, screen, logged, username, error } ) => {
+    .map( ( { text, screen, loggedIn, username, error } ) => {
         return div('.page',[
-            quotes.renderQuote(text, logged),
+            quotes.render(text, loggedIn),
             div('.login-container',[
-                login.renderLoginSection( screen, username),
+                login.render( screen, username),
                 span('.error', error ? 'Error: '+ error : '')
               ]),
           ]);
@@ -121,12 +118,9 @@ function model( loginActions, quoteActions ) {
 
 function main(sources) {
   
-  const quotes = Quotes(API);
-  const login = Login(API);
-  
   /* ACTIONS definitions */
-  const quoteActions = quotes.quoteIntent( sources );
-  const loginActions = login.loginIntent( sources );
+  const quoteActions = quotes.intent( sources );
+  const loginActions = login.intent( sources );
 
   /* STATE definition */
   const userState = model( loginActions, quoteActions );

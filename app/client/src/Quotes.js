@@ -3,10 +3,9 @@ import { div, button, h1 } from '@cycle/dom';
 
 function Quotes( API ) {
   
-  function renderQuote(text, logged) {
+  function render(text, loggedIn) {
     let quoteButton;
-
-    if(logged){
+    if(loggedIn){
       quoteButton = button('.btn-get-quote-protected .pure-button','get a protected quote')
     } else {
       quoteButton = button('.btn-get-quote .pure-button','get a quote')
@@ -18,7 +17,7 @@ function Quotes( API ) {
           ]);
   }
   
-  function quoteIntent( sources ) {
+  function intent( sources ) {
     // construct the event for the click 
     const click$ = sources.DOM
       .select('.btn-get-quote').events('click')
@@ -50,8 +49,8 @@ function Quotes( API ) {
   
   
   return {
-    renderQuote,
-    quoteIntent
+    render,
+    intent
   };
 }
 

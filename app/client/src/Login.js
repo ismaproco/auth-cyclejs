@@ -43,7 +43,7 @@ function Login( API ) {
     ])
   }
 
-  function renderLoginSection( screen, username ) {
+  function render( screen, username ) {
     if(screen === 'welcome') {
       return renderWelcome(  );
     } else if( screen === 'logged-in' ) {
@@ -52,8 +52,7 @@ function Login( API ) {
   }
 
   
-function loginIntent( sources ){
-  
+  function intent( sources ){
     // login click
     const loginClick$ = sources.DOM
       .select('.btn-log-in').events('click')
@@ -111,8 +110,8 @@ function loginIntent( sources ){
   
   
   return {
-    renderLoginSection,
-    loginIntent
+    render,
+    intent
   }
 }
 
