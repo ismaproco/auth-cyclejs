@@ -32,21 +32,35 @@ To begin just clone the repository wherever you want and execute `npm start` on 
 
 We are going to develop a simple application that consumes the random-quote endpoint provided by the JWT sample. (if you want to get the full code check this repo: <link for the basic application repository folder> )
 
-First lets create a package.json file with the basic dependencies and scripts to run the application.
+The folder structure will be as follows
 
 ```
+/basic-example
+   |--- src/
+   |-----|--- main.js
+   |--- .babel.rc
+   |--- index.html
+   |--- package.json
+```
+
+
+The package.json file contains the basic dependencies and scripts to run the application.
+
+### package.json
+
+```json
 {
-  "name": "simple-example",
+  "name": "pre-example",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "author": "Ismael Jimenez",
   "license": "ISC",
   "dependencies": {
-    "@cycle/xstream-run": "1.0.1",
-    "@cycle/dom": "10.0.0-rc11",
-    "@cycle/http": "9.0.0-rc3",
-    "xstream": "2.1.x"
+    "@cycle/dom": "^12.1.0",
+    "@cycle/http": "^10.1.0",
+    "@cycle/xstream-run": "^3.0.4",
+    "xstream": "^5.3.6"
   },
   "devDependencies": {
     "babel-preset-es2015": "^6.3.13",
@@ -79,7 +93,92 @@ The scripts sections specify the running scripts we will have in the application
 
 Your development server will start on http://localhost:8080 you can check the console for more details.
 
+### .babelrc
 
+```json
+{
+  "presets": ["es2015"]
+}
+```
+ The .babelrc file specifies the configuration to use for the ES6 files processing, ( don't forget the "." at the beginning of the file)
+
+### index.html
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <meta name="description" content="Cycle.js - HTTP Random quote"/>
+  <title>Cycle.js - HTTP Random quote - basic</title>
+</head>
+<body>
+    <div id="main-container"></div>
+    <script src="./dist/main.js"></script>
+</body>
+</html>
+```
+
+This HTML file will hold the virtual-dom of the application in the div with id "main-container". Also look how the script is referencing the dist/ folder to search for the output of the browserify process.
+
+### src/main.js
+
+```javascript
+/* required modules */
+
+import Cycle from '@cycle/xstream-run';
+import xs from 'xstream';
+import debounce from 'xstream/extra/debounce';
+import {div, label, input, h1, hr, ul, li, a, makeDOMDriver} from '@cycle/dom';
+import {makeHTTPDriver} from '@cycle/http';
+
+
+function main(sources) {
+  // defining the url observer
+  // cycle-dom uses the GET method by default
+  const _url = 'http://localhost:3001/api/random-quote'
+
+  //create observable for the request using the static url
+  const request$ = xs.of({
+    url: _url,
+    category: 'random-quote'
+  });
+
+  // response event which filter by the category defined in the request
+  const response$ = sources.HTTP
+    .select('random-quote')
+    .flatten();
+
+  // updates the virtual dom when the response listener is executed
+  const vdom$ = response$
+    .map(res => res.text) // this is the response text body
+    .startWith('Loading...') // default value
+    .map(text =>
+      div('.container', [
+        h1(text)
+      ]) // return the virtual dom
+    );
+
+  // return the virtual dom and the request to be processed by the Cycle.run
+  return {
+    DOM: vdom$,
+    HTTP: request$
+  };
+}
+
+// application runner
+Cycle.run(main, {
+  DOM: makeDOMDriver('#main-container'),
+  HTTP: makeHTTPDriver()
+});
+```
+
+The main.js file first imports the required modules used in the application.
+
+Then the main function is defined, this function will hold all the operations performed by the CycleJS loop.
+
+Finally, the Cycle.run will use the main method, and it will process the DOM and HTTP drivers and send the sources and capture the outputs.
 
 ## Let's define the application flow and architecture
 
@@ -92,5 +191,4 @@ Your development server will start on http://localhost:8080 you can check the co
 ## Putting all together
 
 ## Conclusion and final thoughts
-
 
