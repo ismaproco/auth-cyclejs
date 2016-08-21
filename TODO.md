@@ -16,6 +16,7 @@
 - [x] Fix the usage of static streamed values for the request.
 - [x] Implement the changing of screen when the log it button is clicked.
 - [x] Automatically load a quote when the application starts.
+- [x] Add comments to the code a clean messy console.log statements.
 
 ## Blog tasks
 
@@ -26,5 +27,6 @@
 - [ ] Explain why is so hard to thing in a stream kind of way
 - [ ] Explain the basics of the HTTP driver
 - [ ] Explain the basics of the Building of interfaces
+- [ ] Implementing the Auth Driver
 - [ ] Look for a solution for the document.getElements to get the user and password
 - [ ] Look for a solution for the global state to update the request handler

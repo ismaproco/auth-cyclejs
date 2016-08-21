@@ -46,6 +46,9 @@ With this I was able to create a very basic package.json with the minimal depend
 - Then I completed the login section and simplify the flow of the application merging only the necessary requests for the login and for the quote generator.
 
 
+- Improved the Login flow by implementing a login driver that keeps track of the changes in the application, for this it was neccesary to update the way the request is made in the quotes and login component.
+
+
 
 
 
