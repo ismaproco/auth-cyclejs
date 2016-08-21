@@ -5,87 +5,30 @@ import {div, label, input, button, h1, h2, span,
         hr, ul, li, a, form, fieldset, legend, 
         makeDOMDriver } from '@cycle/dom';
 import {makeHTTPDriver} from '@cycle/http';
+
+// Local libraries
+import LoginDriver from './LoginDriver';
 import Quotes from './Quotes';
 import Login from './Login';
-
-// URL and endpoint constants
-const API = {
-  url: 'http://localhost:3001/',
-  requestLogin: {
-    url: 'http://localhost:3001/sessions/create/',
-    method: 'POST',
-    category: 'login',
-    eager: true
-  },
-  requestCreate: {
-    url: 'http://localhost:3001/users/',
-    method: 'POST',
-    category: 'create-user',
-    eager: true
-  },
-  requestRandom: {
-    url: 'http://localhost:3001/api/random-quote',
-    category: 'random-quote',
-    eager: true
-  },
-  requestRandomProtected: {
-    url: 'http://localhost:3001/api/protected/random-quote',
-    headers: {"Authorization": ""},
-    category: 'random-quote-protected',
-    eager: true
-  }
-};
-
-const quotes = Quotes(API);
-const login = Login(API);
 
 /* Views definition */
 
 function view( userState, quotes, login ) {
-  console.log(userState)
-  let events$ = xs.merge(
-    userState.quoteActions.response$, 
-    userState.loginActions.response$,
-    userState.loginActions.screenActions$);
-
+  console.log('----| user state',userState)
+  let events$ = userState.actions$;
+  
+  console.log('----| single out')
   return events$
     .map(( ev ) => { 
-
-      console.log( ev.text, 'state',userState );
+      let data = ev.data;
+      console.log( ev.text, 'state',data );
       
-    
-      if(ev.request) {
-        if( ev.request.category === 'create-user' || ev.request.category === 'login') {
-          const obj = JSON.parse( ev.text );
-          userState.username = ev.request.send.username;
-          userState.screen = 'logged-in';
-          userState.loggedIn = true;
-          userState.error = '';
-          API.requestRandomProtected.headers["Authorization"] = 'Bearer ' + obj.id_token;
-        } else if ( ev.request.category === 'random-quote' 
-                    || ev.request.category === 'random-quote-protected' ) {
-          userState.quote = ev.text;
-          userState.error = '';
-        }
-      } else if( ev.screen){
-        userState.screen = ev.screen;
-
-        if(userState.screen === 'welcome') {
-          userState.id_token = '';
-          userState.error = '';
-          userState.loggedIn = false;
-          API.requestRandomProtected.headers["Authorization"] = '';
-        }
-      } else if (ev.name === 'Error') {
-        userState.error = ev.response ? ev.response.text : 'Error';
-      }
-    
       return {
-        text:userState.quote ,
-        screen: userState.screen || 'welcome', 
-        loggedIn: userState.loggedIn,
-        username: userState.username,
-        error: userState.error
+        text: data.quote ,
+        screen: data.screen || 'welcome', 
+        loggedIn: data.loggedIn,
+        username: data.username,
+        error: data.error
       }; 
 
     } ) // this is the response text body
@@ -102,44 +45,94 @@ function view( userState, quotes, login ) {
     );
 }
 
-
 /* begin model */
 
-function model( loginActions, quoteActions ) {
+function model( sources, loginActions, quoteActions ) {
   
   // initial state
-  let screen = 'welcome';
-  let quote = 'loading';
+  let data = sources.Auth.getData();
 
-  return {screen, quote, loginActions, quoteActions};
+  // merge reponses and screen actions
+  const mergedResponses$ = xs.merge(
+    loginActions.response$, 
+    quoteActions.response$,
+    loginActions.screenActions$ );
+
+  // merge requests
+  const actionsRequest$ = xs.merge(
+    loginActions.request$,
+    quoteActions.request$
+  );
+
+
+  const actions$ = mergedResponses$.map(ev => {
+    if(ev.request) {
+      if( ev.request.category === 'create-user' || ev.request.category === 'login') {
+        const obj = JSON.parse( ev.text );
+        data.username = ev.request.send.username;
+        data.screen = 'logged-in';
+        data.loggedIn = true;
+        data.error = '';
+        data.token = obj.id_token;
+        // API.requestRandomProtected.headers["Authorization"] = 'Bearer ' + obj.id_token;
+      } else if ( ev.request.category === 'random-quote' 
+                  || ev.request.category === 'random-quote-protected' ) {
+        data.quote = ev.text;
+        data.error = '';
+      }
+    } else if( ev.screen){
+      data.screen = ev.screen;
+
+      if(data.screen === 'welcome') {
+        data.token = '';
+        data.error = '';
+        data.loggedIn = false;
+        // API.requestRandomProtected.headers["Authorization"] = '';
+      }
+    } else if (ev.name === 'Error') {
+      data.error = ev.response ? ev.response.text : 'Error';
+    }
+
+    sources.Auth.setData( data );
+
+    return { data };
+  });
+
+  return {
+    data, 
+    request$: actionsRequest$,
+    actions$: actions$
+  };
+
 }
 
 /* end model */
 
 function main(sources) {
-  
+  const quotes = Quotes();
+  const login = Login();
+
   /* ACTIONS definitions */
   const quoteActions = quotes.intent( sources );
   const loginActions = login.intent( sources );
 
   /* STATE definition */
-  const userState = model( loginActions, quoteActions );
+  const userState = model( sources, loginActions, quoteActions );
 
   /* VDOM creation */
 
   // create the vdom
   const vdom$ = view( userState , quotes, login );
 
-  /* merge request streams */
-  const mergeRequest$ = xs.merge(loginActions.request$, quoteActions.request$);
-
   return {
     DOM: vdom$,
-    HTTP: mergeRequest$
-  };
+    HTTP: userState.request$,
+    Auth: userState.actions$
+  }
 }
 
 Cycle.run(main, {
   DOM: makeDOMDriver('#main-container'),
-  HTTP: makeHTTPDriver()
+  HTTP: makeHTTPDriver(),
+  Auth: LoginDriver()
 }); 
