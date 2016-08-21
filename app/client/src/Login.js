@@ -5,6 +5,7 @@ import {div, label, input, button, h1, h2, span,
 
 function Login(  ) {
   
+  // Rendering methods
   function renderForm(  ) {
     return div('.login-form',[
       div('.pure-form',[
@@ -51,7 +52,7 @@ function Login(  ) {
     }
   }
 
-  
+  // build the request and response actions based on the sources
   function intent( sources ){
     // login click
     const loginClick$ = sources.DOM
@@ -67,18 +68,19 @@ function Login(  ) {
         return request;
       });
 
+    //signup click event
     const signUpClick$ = sources.DOM
       .select('.btn-signup').events('click')
       .map( ev => ({ 
+        // get the values from the input fields and set the object to return
         username: document.querySelector('.user-input').value,
         password: document.querySelector('.user-password').value
       }))
       .filter(data => data.username && data.password)
       .map(data => {
         const request = sources.Auth.API.requestCreate;
-
+        // set the data to be send trough the request
         request.send = data;
-
         return request;
       });
 
@@ -89,15 +91,18 @@ function Login(  ) {
       .map( ev => ({ screen:'welcome'}) );
 
 
-    // response event which filter by the category
+    //  create the reponses and intercepting errors
     const createResponse$ = sources.HTTP
       .select('create-user').map( (response$) =>
-        response$.replaceError( (errorObject) => xs.of( errorObject ) ) ).flatten();
+        response$.replaceError( (errorObject) => 
+                              xs.of( errorObject ) ) ).flatten();
 
     const loginResponse$ = sources.HTTP
       .select('login').map( (response$) =>
-        response$.replaceError( (errorObject) => xs.of( errorObject ) ) ).flatten();
+        response$.replaceError( (errorObject) => 
+                              xs.of( errorObject ) ) ).flatten();
 
+    // merge the request and responses
     const mergeRequest$ = xs.merge( loginClick$ , signUpClick$ );
     const mergeResponse$ = xs.merge( createResponse$, loginResponse$ );
 

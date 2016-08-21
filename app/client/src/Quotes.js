@@ -2,7 +2,7 @@ import xs from 'xstream';
 import { div, button, h1 } from '@cycle/dom';
 
 function Quotes( ) {
-  
+  // rendering methods
   function render(text, loggedIn) {
     let quoteButton;
     if(loggedIn){
@@ -17,6 +17,8 @@ function Quotes( ) {
           ]);
   }
   
+
+  // build the request and response actions based on the sources
   function intent( sources ) {
     // construct the event for the click 
     const click$ = sources.DOM
@@ -27,10 +29,10 @@ function Quotes( ) {
       .select('.btn-get-quote-protected').events('click')
       .map(ev => ( sources.Auth.API.requestRandomProtected ) );
 
+    // stream to self execute the random request when the page load
     const autoQuote$ = xs.of( sources.Auth.API.requestRandom );
 
-    // defining the url observer
-    // const request$ = xs.of( $state.userRequest );
+    // merge the request streams
     const request$ = xs.merge(click$, clickProtected$, autoQuote$);
 
     // response event which filter by the category
@@ -43,8 +45,7 @@ function Quotes( ) {
 
     const response$ = xs.merge(responseRandom$, responseRandomProtected$);
 
-
-    return { request$: request$ , response$: response$ };
+    return { request$ , response$ };
   }
   
   

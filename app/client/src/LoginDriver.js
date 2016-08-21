@@ -1,6 +1,7 @@
 
-
+// Method that composites the Auth login operations
 function LoginDriver( ) {
+  // object to hold the request properties
   let API = {
     requestLogin: {
       url: 'http://localhost:3001/sessions/create/',
@@ -27,22 +28,13 @@ function LoginDriver( ) {
     }
   };  
   
-
-  function AuthDriver( sink$ ){
+  // auth to handle request properties
+  function AuthDriver(  ){
     let data = {};
-    console.log('sink$ changed',sink$);
 
-    if( sink$.subscribe ) {
-      sink$.subscribe( token => {
-        console.log('token set', token);
-        if(token) {
-          API.requestRandomProtected.headers.Authorization = "Bearer " + token;
-        }
-      });  
-    }
-
-    function setData( data ) {
-      console.log('****** set token', data );
+    function setData( _data ) {
+      data = _data;
+      // set the auth token to the protected request
       API.requestRandomProtected.headers.Authorization = "Bearer " + data.token;
     }
 
