@@ -22,11 +22,12 @@
 
 - [x] Define the blog structure based on the *vue* example
 - [x] (to define) Start explaining the pre-example app.
+- [x] Look for a solution for the document.getElements to get the user and password
+- [x] Look for a solution for the global state to update the request handler
 - [ ] Explain that the design was implemented used foundation
 - [ ] Explain the general idea of the application
 - [ ] Explain why is so hard to thing in a stream kind of way
 - [ ] Explain the basics of the HTTP driver
 - [ ] Explain the basics of the Building of interfaces
 - [ ] Implementing the Auth Driver
-- [ ] Look for a solution for the document.getElements to get the user and password
-- [ ] Look for a solution for the global state to update the request handler
+
