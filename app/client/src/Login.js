@@ -3,7 +3,7 @@ import {div, label, input, button, h1, h2, span,
         hr, ul, li, a, form, fieldset, legend, 
         makeDOMDriver } from '@cycle/dom';
 
-function Login( API ) {
+function Login(  ) {
   
   function renderForm(  ) {
     return div('.login-form',[
@@ -62,7 +62,7 @@ function Login( API ) {
       }))
       .filter(data => data.username && data.password)
       .map(data => {
-        const request = API.requestLogin;
+        const request = sources.Auth.API.requestLogin;
         request.send = data;
         return request;
       });
@@ -75,7 +75,7 @@ function Login( API ) {
       }))
       .filter(data => data.username && data.password)
       .map(data => {
-        const request = API.requestCreate;
+        const request = sources.Auth.API.requestCreate;
 
         request.send = data;
 
@@ -101,9 +101,7 @@ function Login( API ) {
     const mergeRequest$ = xs.merge( loginClick$ , signUpClick$ );
     const mergeResponse$ = xs.merge( createResponse$, loginResponse$ );
 
-    let screenActions$ = xs.merge(logoutClick$);
-
-    return {  screenActions$,
+    return {  screenActions$: logoutClick$,
               request$: mergeRequest$, 
               response$: mergeResponse$ }
   }

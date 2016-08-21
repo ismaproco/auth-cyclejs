@@ -1,7 +1,7 @@
 import xs from 'xstream';
 import { div, button, h1 } from '@cycle/dom';
 
-function Quotes( API ) {
+function Quotes( ) {
   
   function render(text, loggedIn) {
     let quoteButton;
@@ -21,13 +21,13 @@ function Quotes( API ) {
     // construct the event for the click 
     const click$ = sources.DOM
       .select('.btn-get-quote').events('click')
-      .map(ev => ( API.requestRandom ) );
+      .map(ev => ( sources.Auth.API.requestRandom ) );
 
     const clickProtected$ = sources.DOM
       .select('.btn-get-quote-protected').events('click')
-      .map(ev => ( API.requestRandomProtected ) );
+      .map(ev => ( sources.Auth.API.requestRandomProtected ) );
 
-    const autoQuote$ = xs.of( API.requestRandom );
+    const autoQuote$ = xs.of( sources.Auth.API.requestRandom );
 
     // defining the url observer
     // const request$ = xs.of( $state.userRequest );
