@@ -215,12 +215,14 @@ The application file structure will look like this:
    |-----|--- LoginDriver.js
    |-----|--- Quotes.js
    |-----|--- main.js
+   |--- styles/
+   |-----|--- styles.css
    |--- .babel.rc
    |--- index.html
    |--- package.json
 ```
 
-Similar to out basic application the only difference is that we added the components files to the sources folder.
+Similar to out basic application the only difference is that we added the components files to the sources folder, and the stylesheet to give a better presentation to the app.
 
 ## The MVI architecture (Model-View-Intent)
 
@@ -236,7 +238,12 @@ defined in the main.js will merge the reponse of each one of the intents, and cr
 
 (graph explaining the application architecture)
 
-### Quotes component
+### src/Quotes.js - Quotes component
+
+The quotes will appear at the top of the page, and as soon as the application is fully loaded it will get a random quote that don't require the authorization token. It will also have a button that will allow the user to request for a different quote.
+
+Once the user is logged in, the button will change to allow to get a protected quote using the authorization token.
+
 
 ```javascript
 import xs from 'xstream';
@@ -299,7 +306,20 @@ function Quotes( ) {
 export default Quotes;
 ```
 
-### Login Component
+The quotes module consist of two methods, the render that will return the virtual dom two draw on the screen, and the intent which will return the observables require for the application of the HTTP effects which are summarized in the request and response streams.
+
+It is important to conside how the request observer that make the initial loas is just an stream with the sources respective request.
+
+```javascript
+const autoQuote$ = xs.of( sources.Auth.API.requestRandom );
+```
+
+and how the request and response are the merged streams of each one of the individual actions.
+
+### src/Login.js - Login Component
+
+The login have a similar structure as the Quotes, it also have the render method, that encapsulates the other render functions, and an intent method to return the merged responses and requests streams.
+
 
 ```javascript
 import xs from 'xstream';
@@ -358,13 +378,19 @@ function Login(  ) {
 
   // build the request and response actions based on the sources
   function intent( sources ){
+
+    // get the values from the input fields and set the object to return
+    function getLoginInputValues(){
+      return {         
+        username: document.querySelector('.user-input').value,
+        password: document.querySelector('.user-password').value
+      }
+    }
+
     // login click
     const loginClick$ = sources.DOM
       .select('.btn-log-in').events('click')
-      .map( ev => ({ 
-        username: document.querySelector('.user-input').value,
-        password: document.querySelector('.user-password').value
-      }))
+      .map( ev => ( getLoginInputValues() ) )
       .filter(data => data.username && data.password)
       .map(data => {
         const request = sources.Auth.API.requestLogin;
@@ -375,11 +401,7 @@ function Login(  ) {
     //signup click event
     const signUpClick$ = sources.DOM
       .select('.btn-signup').events('click')
-      .map( ev => ({ 
-        // get the values from the input fields and set the object to return
-        username: document.querySelector('.user-input').value,
-        password: document.querySelector('.user-password').value
-      }))
+      .map( ev => ( getLoginInputValues() ) )
       .filter(data => data.username && data.password)
       .map(data => {
         const request = sources.Auth.API.requestCreate;
@@ -426,7 +448,24 @@ export default Login;
 
 ```
 
-### LoginDriver
+The biggest difference with the Quotes component is how the values of the inputs are mapped and filtered inside the login and signup request.
+
+```javascript
+function getLoginInputValues(){
+      return {         
+        username: document.querySelector('.user-input').value,
+        password: document.querySelector('.user-password').value
+      }
+    }
+```
+
+Its also important to notice how the request change in the final mapping of each one of the streams depending of the requests.
+
+### src/LoginDriver.js Login Driver
+
+The javscript driver is the component that will handle the change of the state of the user data, and also expose the api for the requests. 
+
+The idea is to separate the impure functions from the operations that happen in the main function, allowing to extend the functionality of the driver without affecting the execution of the application.
 
 ```javascript
 
@@ -487,10 +526,223 @@ export default LoginDriver;
 
 ```
 
-### Main
+Look as the LoginDriver is just a closure for the AuthDriver, being the latter the one that expose the requests API and additional methods.
 
 
-## Putting all together
+### src/main.js - Main File
+
+This is the core section of the application, and consiste of the importing of the application libraries, the importing of the components and driver.
+
+But contains three important methods:
+
+* view: build the domain three using the UserState build by the model method.
+
+* model: build the application state based in the responses of the quotes and login actions.
+
+* main: initialize the components and get the components' actions from their intents, then send the actions as parameters for the model, which will build the virtual dom.
+
+Finally every thing will be executed by the runner of the CycleJS component.
+
+
+```javascript
+import Cycle from '@cycle/xstream-run';
+import xs from 'xstream';
+import debounce from 'xstream/extra/debounce';
+import {div, label, input, button, h1, h2, span,
+        hr, ul, li, a, form, fieldset, legend, 
+        makeDOMDriver } from '@cycle/dom';
+import {makeHTTPDriver} from '@cycle/http';
+
+// Local libraries
+import LoginDriver from './LoginDriver';
+import Quotes from './Quotes';
+import Login from './Login';
+
+/* Views definition */
+
+function view( userState, quotes, login ) {
+
+  let events$ = userState.actions$;
+
+  return events$
+    .map(( ev ) => { 
+      let data = ev.data;
+      // build the object to be handled by the view
+      return {
+        text: data.quote ,
+        screen: data.screen || 'welcome', 
+        loggedIn: data.loggedIn,
+        username: data.username,
+        error: data.error
+      }; 
+    } ) 
+    .startWith({text:'Loading...', screen: 'welcome'})
+    .map( ( { text, screen, loggedIn, username, error } ) => {
+      // execute the rendering methods for the components and return
+      // the stream for the view
+        return div('.page',[
+
+            quotes.render(text, loggedIn),
+            div('.login-container',[
+                login.render( screen, username),
+                span('.error', error ? 'Error: '+ error : '')
+              ]),
+          ]);
+      }
+    );
+}
+/* End View */
+
+/* Model Definition */
+
+function model( sources, loginActions, quoteActions ) {
+  
+  // initial state
+  let data = sources.Auth.getData();
+
+  // merge reponses and screen actions
+  const mergedResponses$ = xs.merge(
+    loginActions.response$, 
+    quoteActions.response$,
+    loginActions.screenActions$ );
+
+  // merge requests
+  const actionsRequest$ = xs.merge(
+    loginActions.request$,
+    quoteActions.request$
+  );
+
+  // build the data object to be send to the views
+  const actions$ = mergedResponses$.map(ev => {
+    if(ev.request) {
+      if( ev.request.category === 'create-user' 
+            || ev.request.category === 'login') {
+        // parse the text response into a json object
+        const obj = JSON.parse( ev.text );
+
+        //fill the data objec with the response
+        data.username = ev.request.send.username;
+        data.screen = 'logged-in';
+        data.loggedIn = true;
+        data.error = '';
+        data.token = obj.id_token;
+      } else if ( ev.request.category === 'random-quote' 
+                  || ev.request.category === 'random-quote-protected' ) {
+        // get the quote from the quote enpoints
+        data.quote = ev.text;
+        data.error = '';
+      }
+    } else if( ev.screen){
+      data.screen = ev.screen;
+
+      // each time the initial screen is shown the data object is cleared
+      if(data.screen === 'welcome') {
+        data.token = '';
+        data.error = '';
+        data.loggedIn = false;
+      }
+    } else if (ev.name === 'Error') {
+      // set the error text in case of an error mesagge (handled by the HTTP request)
+      data.error = ev.response ? ev.response.text : 'Error';
+    }
+
+    // all the data changes are updated in to the Auth driver
+    sources.Auth.setData( data );
+
+    return { data };
+  });
+
+  return {
+    data, 
+    request$: actionsRequest$,
+    actions$: actions$
+  };
+
+}
+
+/* End Model  */
+
+function main(sources) {
+  // init components
+  const quotes = Quotes();
+  const login = Login();
+
+  /* ACTIONS definitions */
+  const quoteActions = quotes.intent( sources );
+  const loginActions = login.intent( sources );
+
+  /* STATE definition */
+  const userState = model( sources, loginActions, quoteActions );
+
+  /* VDOM creation */
+  const vdom$ = view( userState , quotes, login );
+
+  return {
+    DOM: vdom$,
+    HTTP: userState.request$,
+    Auth: userState.actions$
+  }
+}
+
+// main application cycle
+Cycle.run(main, {
+  DOM: makeDOMDriver('#main-container'),
+  HTTP: makeHTTPDriver(),
+  Auth: LoginDriver()
+}); 
+```
+
+Put attention how the model is actually capturing all the responses of the merged responses and building the data object from it, and this object is just an object that the view will evaluate to build the model.
+
+
+## Putting all together index.html and main.js 
+
+Finally the html layout with the container to hold the application and the styling sheet for the application.
+
+### index.html
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Cycle.js -JWT - Random Quote"/>
+  <title>Cycle.js - JWT - Random Quote</title>
+  <link rel="stylesheet" href="http://yui.yahooapis.com/pure/0.6.0/pure-min.css">
+  <link rel="stylesheet" href="styles/main.css">
+  <link href="https://fonts.googleapis.com/css?family=Lemonada" rel="stylesheet">
+</head>
+<body>
+    <div class="home-menu pure-menu pure-menu-horizontal pure-menu-fixed">
+        <span class="pure-menu-heading">Chuck Norris Quotes</span>
+    </div>
+    <div id="main-container"></div>
+    <script src="./dist/main.js"></script>
+</body>
+</html>
+```
+
+### styles/main.css
+
+
+It is similar to the one of the basic example, the biggest difference are the importing of the css framework:
+
+```html
+  <link rel="stylesheet" href="http://yui.yahooapis.com/pure/0.6.0/pure-min.css">
+
+Loading of additional fonts from google:
+```html
+  <link href="https://fonts.googleapis.com/css?family=Lemonada" rel="stylesheet">
+```
+
+Loading the application styles
+```
+  <link rel="stylesheet" href="styles/main.css">
+```
+
+
+
 
 ## Conclusion and final thoughts
 

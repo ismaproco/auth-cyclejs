@@ -54,13 +54,19 @@ function Login(  ) {
 
   // build the request and response actions based on the sources
   function intent( sources ){
+
+    // get the values from the input fields and set the object to return
+    function getLoginInputValues(){
+      return {         
+        username: document.querySelector('.user-input').value,
+        password: document.querySelector('.user-password').value
+      }
+    }
+
     // login click
     const loginClick$ = sources.DOM
       .select('.btn-log-in').events('click')
-      .map( ev => ({ 
-        username: document.querySelector('.user-input').value,
-        password: document.querySelector('.user-password').value
-      }))
+      .map( ev => ( getLoginInputValues() ) )
       .filter(data => data.username && data.password)
       .map(data => {
         const request = sources.Auth.API.requestLogin;
@@ -71,11 +77,7 @@ function Login(  ) {
     //signup click event
     const signUpClick$ = sources.DOM
       .select('.btn-signup').events('click')
-      .map( ev => ({ 
-        // get the values from the input fields and set the object to return
-        username: document.querySelector('.user-input').value,
-        password: document.querySelector('.user-password').value
-      }))
+      .map( ev => ( getLoginInputValues() ) )
       .filter(data => data.username && data.password)
       .map(data => {
         const request = sources.Auth.API.requestCreate;
