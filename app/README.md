@@ -28,6 +28,9 @@ Check https://github.com/auth0/nodejs-jwt-authentication-sample repository to ge
 
 To begin just clone the repository wherever you want and execute `npm start` on the root folder.
 
+It will start by default in the localhost with port 3001 `http://localhost:3001` we will point to this url in the applications to communicate with the rest-endpoints.
+
+
 ## Basic HTTP Request CycleJS application
 
 We are going to develop a simple application that consumes the random-quote endpoint provided by the JWT sample. (if you want to get the full code check this repo: <link for the basic application repository folder> )
@@ -176,17 +179,68 @@ Cycle.run(main, {
 
 The main.js file first imports the required modules used in the application.
 
-Then the main function is defined, this function will hold all the operations performed by the CycleJS loop.
+Then the main function is defined, this function will hold all the operations performed 
+by the CycleJS loop.
 
-Finally, the Cycle.run will use the main method, and it will process the DOM and HTTP drivers and send the sources and capture the outputs.
+Finally, the Cycle.run will use the main method, and it will process the DOM and HTTP drivers 
+and send the sources and capture the outputs.
+
+### Starting the basic application
+
+Now that you have all the necessary files, is just matter of execute `npm start` 
+and a basic web server will start on port 8080 (if there is already an application running for 
+this port the server will start in the 8081 and so on )
+
+Open the browser and navigate to the url, and you will see the quote on the screen.
+
+(example image of the browser here)
 
 ## Let's define the application flow and architecture
 
-## Setting up the intents
+Great now that you now the normal flow of a CycleJS application is not always the best idea to have
+all the logic and effects in the main, so there are different kind of approaches to improve the 
+estructure of the application.
 
-## Setting up the model
+For this we need to define first what is the normal flow of the application, in our case we will 
+have two main components: one for the *Quotes*, and another for the *Login*, also we will need to handle
+the login in a simple driver so we can keep the state of the Login, and finally we will have the 
+*Main* file were all of the compnents will be bound together.
 
-## Setting up the view 
+The application file structure will look like this:
+
+```
+/basic-example
+   |--- src/
+   |-----|--- Login.js
+   |-----|--- LoginDriver.js
+   |-----|--- Quotes.js
+   |-----|--- main.js
+   |--- .babel.rc
+   |--- index.html
+   |--- package.json
+```
+
+Similar to out basic application the only difference is that we added the components files to the sources folder.
+
+## The MVI architecture (Model-View-Intent)
+
+There is not a strict guide line of how to implement CycleJS applications or components but there is a recommended
+architecture to follow that is call MVI for the Model-View-Intent and it's the interpretation of the MVC architecture
+adapted to the reactive and functional way. 
+
+If you want to know more please look at great explanation in the CycleJS documentation 
+http://cycle.js.org/model-view-intent.html
+
+For the application we will have the definition of the intents and renders inside of each one of the components, and the model
+defined in the main.js will merge the reponse of each one of the intents, and create the actions to be rendered by the view.
+
+(graph explaining the application architecture)
+
+### Quotes
+### Login
+### LoginDriver
+### Main
+
 
 ## Putting all together
 
