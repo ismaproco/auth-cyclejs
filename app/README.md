@@ -711,7 +711,6 @@ Finally the html layout with the container to hold the application and the styli
   <title>Cycle.js - JWT - Random Quote</title>
   <link rel="stylesheet" href="http://yui.yahooapis.com/pure/0.6.0/pure-min.css">
   <link rel="stylesheet" href="styles/main.css">
-  <link href="https://fonts.googleapis.com/css?family=Lemonada" rel="stylesheet">
 </head>
 <body>
     <div class="home-menu pure-menu pure-menu-horizontal pure-menu-fixed">
@@ -725,21 +724,108 @@ Finally the html layout with the container to hold the application and the styli
 
 ### styles/main.css
 
+```css
+/* imports */
+
+@import 'https://fonts.googleapis.com/css?family=Lemonada|Roboto|Tillana';
+
+/* global styles*/
+body {
+    font-family: 'Roboto', sans-serif;
+}
+
+/* menu style*/
+
+.home-menu {
+    background: #009688;
+    color: white;
+    text-align: center;
+    font-family: 'Lemonada', cursive;
+    font-size: 1.2em;
+    height: 60px;
+}
+
+.home-menu .pure-menu-heading {
+    color: white;
+}
+
+/* main-container styles */
+
+#main-container {
+    padding-top: 65px;
+}
+
+/* quote container styles */
+.quote-container {
+    font-family: 'Tillana', cursive;
+    font-size: 0.9em;
+    padding: 25px;
+    max-width: 600px;
+    margin: auto;
+}
+
+.quote-container .btn-get-quote,
+.quote-container .btn-get-quote-protected  {
+    margin: auto;
+    display: block;
+    text-transform: capitalize;
+    font-family: 'Roboto', sans-serif;
+}
+
+/* form container styles */
+
+.login-container {
+    font-size: 0.9em;
+    padding: 25px;
+    max-width: 600px;
+    margin: auto;
+}
+
+.login-container input,
+.login-container button {
+    margin-right: 10px;
+} 
+
+.login-container button {
+  text-transform: capitalize;
+}
+
+span.user-name {
+    text-decoration: underline;
+    color: darkblue;
+}
+
+.btn-log-out {
+    margin: 10px 0 0 50px;
+}
+
+span.error {
+    display: block;
+    padding: 20px;
+    text-align: center;
+    color: #a00;
+}
+```
+
 
 It is similar to the one of the basic example, the biggest difference are the importing of the css framework:
 
 ```html
   <link rel="stylesheet" href="http://yui.yahooapis.com/pure/0.6.0/pure-min.css">
-
-Loading of additional fonts from google:
-```html
-  <link href="https://fonts.googleapis.com/css?family=Lemonada" rel="stylesheet">
 ```
 
 Loading the application styles
-```
+```html
   <link rel="stylesheet" href="styles/main.css">
 ```
+
+Loading of additional fonts from google:
+```css
+  @import 'https://fonts.googleapis.com/css?family=Lemonada|Roboto|Tillana';
+
+```
+
+
 
 
 
