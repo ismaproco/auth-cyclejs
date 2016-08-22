@@ -236,9 +236,257 @@ defined in the main.js will merge the reponse of each one of the intents, and cr
 
 (graph explaining the application architecture)
 
-### Quotes
-### Login
+### Quotes component
+
+```javascript
+import xs from 'xstream';
+import { div, button, h1 } from '@cycle/dom';
+
+function Quotes( ) {
+  // rendering methods
+  function render(text, loggedIn) {
+    let quoteButton;
+    if(loggedIn){
+      quoteButton = button('.btn-get-quote-protected .pure-button','get a protected quote')
+    } else {
+      quoteButton = button('.btn-get-quote .pure-button','get a quote')
+    }
+
+    return div('.quote-container', [
+            h1(text),
+            quoteButton
+          ]);
+  }
+  
+
+  // build the request and response actions based on the sources
+  function intent( sources ) {
+    // construct the event for the click 
+    const click$ = sources.DOM
+      .select('.btn-get-quote').events('click')
+      .map(ev => ( sources.Auth.API.requestRandom ) );
+
+    const clickProtected$ = sources.DOM
+      .select('.btn-get-quote-protected').events('click')
+      .map(ev => ( sources.Auth.API.requestRandomProtected ) );
+
+    // stream to self execute the random request when the page load
+    const autoQuote$ = xs.of( sources.Auth.API.requestRandom );
+
+    // merge the request streams
+    const request$ = xs.merge(click$, clickProtected$, autoQuote$);
+
+    // response event which filter by the category
+    const responseRandom$ = sources.HTTP
+      .select('random-quote').flatten();
+
+    // response event which filter by the category
+    const responseRandomProtected$ = sources.HTTP
+      .select('random-quote-protected').flatten();
+
+    const response$ = xs.merge(responseRandom$, responseRandomProtected$);
+
+    return { request$ , response$ };
+  }
+  
+  
+  return {
+    render,
+    intent
+  };
+}
+
+export default Quotes;
+```
+
+### Login Component
+
+```javascript
+import xs from 'xstream';
+import {div, label, input, button, h1, h2, span,
+        hr, ul, li, a, form, fieldset, legend, 
+        makeDOMDriver } from '@cycle/dom';
+
+function Login(  ) {
+  
+  // Rendering methods
+  function renderForm(  ) {
+    return div('.login-form',[
+      div('.pure-form',[
+        fieldset([
+          legend('Please log in to use the protected api.'),
+          input('.user-input', 
+            { attrs: { 
+                type:'text', placeholder: 'User', required:'true'
+              } 
+            }),
+          input('.user-password', 
+            { attrs: { 
+                type:'text', placeholder: 'Password', required:'true'
+              } 
+            })
+        ])
+      ])
+    ])
+  }
+
+  function renderWelcome(  ) {
+    return div('.welcome', [
+      renderForm(),
+      button('.btn-signup .pure-button','sign up'),
+      button('.btn-log-in .pure-button', 'log in')
+    ]);
+  }
+  
+  function renderLoggedIn( username ) {
+    return div('.logged-in-form',[
+      div('.welcome-user-name', [ 
+        span('.welcome', 'Welcome: '), 
+        span('.user-name',username) 
+        ]),
+      button('.btn-log-out .pure-button', 'log out' )
+    ])
+  }
+
+  function render( screen, username ) {
+    if(screen === 'welcome') {
+      return renderWelcome(  );
+    } else if( screen === 'logged-in' ) {
+      return renderLoggedIn( username );
+    }
+  }
+
+  // build the request and response actions based on the sources
+  function intent( sources ){
+    // login click
+    const loginClick$ = sources.DOM
+      .select('.btn-log-in').events('click')
+      .map( ev => ({ 
+        username: document.querySelector('.user-input').value,
+        password: document.querySelector('.user-password').value
+      }))
+      .filter(data => data.username && data.password)
+      .map(data => {
+        const request = sources.Auth.API.requestLogin;
+        request.send = data;
+        return request;
+      });
+
+    //signup click event
+    const signUpClick$ = sources.DOM
+      .select('.btn-signup').events('click')
+      .map( ev => ({ 
+        // get the values from the input fields and set the object to return
+        username: document.querySelector('.user-input').value,
+        password: document.querySelector('.user-password').value
+      }))
+      .filter(data => data.username && data.password)
+      .map(data => {
+        const request = sources.Auth.API.requestCreate;
+        // set the data to be send trough the request
+        request.send = data;
+        return request;
+      });
+
+
+    // login click
+    const logoutClick$ = sources.DOM
+      .select('.btn-log-out').events('click')
+      .map( ev => ({ screen:'welcome'}) );
+
+
+    //  create the reponses and intercepting errors
+    const createResponse$ = sources.HTTP
+      .select('create-user').map( (response$) =>
+        response$.replaceError( (errorObject) => 
+                              xs.of( errorObject ) ) ).flatten();
+
+    const loginResponse$ = sources.HTTP
+      .select('login').map( (response$) =>
+        response$.replaceError( (errorObject) => 
+                              xs.of( errorObject ) ) ).flatten();
+
+    // merge the request and responses
+    const mergeRequest$ = xs.merge( loginClick$ , signUpClick$ );
+    const mergeResponse$ = xs.merge( createResponse$, loginResponse$ );
+
+    return {  screenActions$: logoutClick$,
+              request$: mergeRequest$, 
+              response$: mergeResponse$ }
+  }
+  
+  
+  return {
+    render,
+    intent
+  }
+}
+
+export default Login;
+
+```
+
 ### LoginDriver
+
+```javascript
+
+// Method that composites the Auth login operations
+function LoginDriver( ) {
+  // object to hold the request properties
+  let API = {
+    requestLogin: {
+      url: 'http://localhost:3001/sessions/create/',
+      method: 'POST',
+      category: 'login',
+      eager: true
+    },
+    requestCreate: {
+      url: 'http://localhost:3001/users/',
+      method: 'POST',
+      category: 'create-user',
+      eager: true
+    },
+    requestRandom: {
+      url: 'http://localhost:3001/api/random-quote',
+      category: 'random-quote',
+      eager: true
+    },
+    requestRandomProtected: {
+      url: 'http://localhost:3001/api/protected/random-quote',
+      headers: {"Authorization": ""},
+      category: 'random-quote-protected',
+      eager: true
+    }
+  };  
+  
+  // auth to handle request properties
+  function AuthDriver(  ){
+    let data = {};
+
+    function setData( _data ) {
+      data = _data;
+      // set the auth token to the protected request
+      API.requestRandomProtected.headers.Authorization = "Bearer " + data.token;
+    }
+
+    function getData() {
+      return data;
+    }
+    
+    return {
+      API,
+      setData,
+      getData
+    }
+  }
+
+  return AuthDriver;
+}
+
+export default LoginDriver;
+
+```
+
 ### Main
 
 
