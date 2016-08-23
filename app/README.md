@@ -825,10 +825,8 @@ Loading of additional fonts from google:
 
 ```
 
-
-
-
-
-
 ## Conclusion and final thoughts
+
+CycleJS application relay in many concepts that even if they take some time to learn bring a different approach to tackle the web development in our days. So i would really recommend to try different approaches when you get to develop applications using the reactive way, and of course look at the official documentation at: http://cycle.js.org/getting-started.html to get more insight in this platform.
+
 

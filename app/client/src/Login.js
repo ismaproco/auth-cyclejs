@@ -18,7 +18,7 @@ function Login(  ) {
             }),
           input('.user-password', 
             { attrs: { 
-                type:'text', placeholder: 'Password', required:'true'
+                type:'password', placeholder: 'Password', required:'true'
               } 
             })
         ])
