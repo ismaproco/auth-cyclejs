@@ -193,7 +193,8 @@ this port the server will start in the 8081 and so on )
 
 Open the browser and navigate to the url, and you will see the quote on the screen.
 
-(example image of the browser here)
+![basic example screen]
+(https://github.com/ismaproco/auth-cyclejs/raw/master/assets/basic-screen.png)
 
 ## Let's define the application flow and architecture
 
@@ -236,7 +237,8 @@ http://cycle.js.org/model-view-intent.html
 For the application we will have the definition of the intents and renders inside of each one of the components, and the model
 defined in the main.js will merge the reponse of each one of the intents, and create the actions to be rendered by the view.
 
-(graph explaining the application architecture)
+![Application diagram]
+(https://github.com/ismaproco/auth-cyclejs/raw/master/assets/application-diagram.png)
 
 ### src/Quotes.js - Quotes component
 
@@ -824,6 +826,11 @@ Loading of additional fonts from google:
   @import 'https://fonts.googleapis.com/css?family=Lemonada|Roboto|Tillana';
 
 ```
+
+The application should look as follows:
+
+![Application end result]
+(https://github.com/ismaproco/auth-cyclejs/raw/master/assets/complete-screen.png)
 
 ## Conclusion and final thoughts
 
